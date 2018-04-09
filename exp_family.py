@@ -37,11 +37,13 @@ def get_suff_IW_conj(x, y, pref):
     update
     """
     diff = x - y
-    suff_D = [
+    suff_D = np.array([
         -1/2 * (pref + np.outer(diff, diff)),
         -1/2,
-    ]
+    ])
     return suff_D
+
+get_sufficient_vector = get_suff_IW_conj
 
 def sum_hyp_and_suff(_hyp, suff):
     """
@@ -69,3 +71,18 @@ def get_IW_pars_from_hyp(hyp_R):
     Ukk = get_IW_var_from_hyp(hyp_R)
     ukk = get_IW_dof_from_hyp(hyp_R)
     return Ukk, ukk
+
+def init_P_hyp(tau, P):
+    init = np.array([
+        -0.5 * tau * P,
+        -0.5 * tau - 1 - P.shape[0]
+    ])
+    return init
+
+def init_R_hyp(rho, psi, nu):
+    m = psi.shape[0]
+    init = np.array([
+            rho * psi,
+            -0.5 * ((rho * (-2 * nu - m - 1)) + m + 1)
+            ])
+    return init

@@ -82,3 +82,8 @@ def plot_results(traj, x_log):
     plt.plot(traj.X[3], label='velocity y')
     plt.plot(x_log[3], label='KF estimate')
     plt.legend()
+    
+def time_update(x, P, F, Q):
+    x_new = predict_state(F, x)
+    P_new = predict_PECM(F, P, Q)
+    return x_new, P_new
