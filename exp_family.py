@@ -82,7 +82,7 @@ def init_P_hyp(tau, P):
 def init_R_hyp(rho, psi, nu):
     m = psi.shape[0]
     init = np.array([
-            rho * psi,
-            -0.5 * ((rho * (-2 * nu - m - 1)) + m + 1)
+            -0.5 * rho * psi,
+            -0.5 * ((rho * (nu - m - 1) + m + 1) + m + 1)
             ])
     return init
