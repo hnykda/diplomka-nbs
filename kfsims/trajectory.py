@@ -42,6 +42,7 @@ class trajectory():
 
 
 #            print('-------')
+        np.random.seed()
 
 
 if __name__ == '__main__':

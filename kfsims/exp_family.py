@@ -43,26 +43,12 @@ def get_suff_IW_conj(x, y, pref):
     return suff_D
 
 
-def sum_hyp_and_suff(_hyp, suff):
-    """
-    Sums both elements of hyperparametr "suff"
-    and suff stat.
-    """
-    return [
-        _hyp[0] + suff[0],
-        _hyp[1] + suff[1]
-    ]
-
-
 def update_IW(hyp_D_prev, xikk, xk, Pik_old):
     """
     Do an update of Norm-IW conjugate in an exponential form.
     """
-    # get's a sufficient statistics
     suff_D = get_suff_IW_conj(xikk, xk, Pik_old)
-    # add it to the hyperparametr value
-    hyp_D = sum_hyp_and_suff(hyp_D_prev, suff_D)
-    # compute new expected value of a scale matrix
+    hyp_D = hyp_D_prev + suff_D
     Dik = get_E_IW_hyp(hyp_D)
     return Dik, hyp_D
 
