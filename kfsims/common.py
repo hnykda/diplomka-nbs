@@ -1,6 +1,7 @@
-from trajectory import trajectory
+from kfsims.trajectory import trajectory
 import matplotlib.pylab as plt
 import numpy as np
+
 
 def init(P_k__l, tau, n, rho, u_l__l, m, U_l__l):
     """
@@ -11,6 +12,7 @@ def init(P_k__l, tau, n, rho, u_l__l, m, U_l__l):
     u_k__l = rho * (u_l__l - m - 1) + m + 1
     U_k__l = rho * U_l__l
     return t_k__l, T_k__l, u_k__l, U_k__l
+
 
 def predict_state(F_l, x_l__l):
     """
@@ -25,11 +27,13 @@ def predict_PECM(F_l, P_l__l, Q_l):
     """
     return F_l @ P_l__l @ F_l.T + Q_l
 
+
 def init_trajectory(ndat=50):
     traj = trajectory(ndat=ndat)
     traj.R = .5 * np.eye(2)
     traj._simulate()
     return traj
+
 
 def init_all(traj=None, N=5):
     if not traj:
@@ -54,6 +58,7 @@ def kalman_correction(H, Pik, Rik, xk, zk):
     xikk = xk + Kik @ (zk - H @ xk)
     Pik = Pik - Kik @ H @ Pik
     return Pik, xikk
+
 
 def plot_results(traj, x_log):
     plt.figure(figsize=(10, 10))
@@ -82,7 +87,8 @@ def plot_results(traj, x_log):
     plt.plot(traj.X[3], label='velocity y')
     plt.plot(x_log[3], label='KF estimate')
     plt.legend()
-    
+
+
 def time_update(x, P, F, Q):
     x_new = predict_state(F, x)
     P_new = predict_PECM(F, P, Q)
