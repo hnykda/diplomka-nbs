@@ -31,7 +31,7 @@ class MeasurementNode:
                  rho: Scalar,
                  tau: Scalar,
                  observe: Callable,
-                 N=2,
+                 N=100,
                  label:str=None,
                  ):
         """
@@ -140,6 +140,6 @@ def make_simple_nodes(n=5):
     nodes = []
     for i in range(n):
         traj2, xk, P, tau, rho, u, U, H, F, Q, N = common.init_all()
-        traj2.Y = traj2.Y + np.random.normal(size=traj2.Y.shape) * 1
+        traj2.Y = traj2.Y + np.random.normal(size=traj2.Y.shape) * 5
         nodes.append(node_factory(xk, P, u, U, F, Q, H, rho, tau, observe_factory(traj2.Y.T.copy())))
     return nodes
