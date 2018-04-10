@@ -6,7 +6,7 @@ from kfsims.node import node_factory, observe_factory
 def test_single_node():
     traj_ = init_trajectory(5)
     traj, xk, P, tau, rho, u, U, H, F, Q, N = init_all(traj_)
-    f = observe_factory(traj)
+    f = observe_factory(traj.Y.T)
     m1 = node_factory(xk, P, u, U, F, Q, H, rho, tau, f)
 
     m1()
@@ -29,7 +29,7 @@ def test_single_node():
 
 def test_single_node_rmse():
     traj, xk, P, tau, rho, u, U, H, F, Q, N = init_all()
-    f = observe_factory(traj)
+    f = observe_factory(traj.Y.T)
     m1 = node_factory(xk, P, u, U, F, Q, H, rho, tau, f)
 
     m1()
@@ -48,8 +48,8 @@ def test_two_mean():
     traj, xk, P, tau, rho, u, U, H, F, Q, N = init_all()
 
     # observe_factory is now irrelevant
-    m1 = node_factory(xk, P, u, U, F, Q, H, rho, tau, observe_factory(traj))
-    m2 = node_factory(xk, P, u, U, F, Q, H, rho, tau, observe_factory(traj))
+    m1 = node_factory(xk, P, u, U, F, Q, H, rho, tau, observe_factory(traj.Y.T))
+    m2 = node_factory(xk, P, u, U, F, Q, H, rho, tau, observe_factory(traj.Y.T))
 
     zs = traj.Y.T
     zs_dist = traj.Y.T + np.random.normal(size=traj.Y.T.shape) * 0.1

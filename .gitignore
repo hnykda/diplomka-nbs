@@ -1,5 +1,6 @@
-__pycache__
+**/__pycache__
 archive
 .ipynb_checkpoints
 .idea
-.pytest*
+.pytest_cache
+kfsims.egg-info

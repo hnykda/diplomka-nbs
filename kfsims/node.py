@@ -2,7 +2,7 @@ from kfsims.iw_prior import IWPrior
 import numpy as np
 from kfsims import common
 from kfsims.exp_family import update_IW
-from nbs import exp_family
+from archive import exp_family
 from typing import Tuple, Callable
 from collections import defaultdict
 
@@ -32,6 +32,7 @@ class MeasurementNode:
                  tau: Scalar,
                  observe: Callable,
                  N=10,
+                 label:str=None,
                  ):
         """
         Args:
@@ -54,6 +55,8 @@ class MeasurementNode:
         self.logger = defaultdict(list)
 
         self.P = self.P_prior.expect()
+
+        self.label = label if label else str(id(self))[-5:]
 
     def predict_state(self) -> Tuple[Vector, Matrix]:
         return common.time_update(self.last_state, self.P, self.F, self.Q)
@@ -96,12 +99,34 @@ class MeasurementNode:
         self.log('P', P)
         return x, P, hyp_P, hyp_R
 
-    def __call__(self):
+    @property
+    def _kf_iterator(self):
         for measurement in self.observe():
-            x, P, _, _ = self.single_kf(measurement)
+            x, P, hyp_P, hyp_R = self.single_kf(measurement)
+            yield x, P, hyp_P, hyp_R
+
+    def __call__(self):
+        _ = list(self._kf_iterator)
+
+    def __str__(self):
+        return f'<Node: {self.label}>'
+
+    def __repr__(self):
+        return self.__str__()
 
     def log(self, key, val):
         self.logger[key].append(val)
+
+    def post_rmse(self, true):
+        x_log = np.array(self.logger['x']).squeeze().T
+        rmse = np.sqrt(((x_log[:2] - true[:2]) ** 2).mean())
+        return rmse
+
+
+def observe_factory(traj):
+    def f():
+        return (y for y in traj)
+    return f
 
 
 def node_factory(x, P, u, U, F, Q, H, rho, tau, observe_func):
@@ -110,8 +135,10 @@ def node_factory(x, P, u, U, F, Q, H, rho, tau, observe_func):
     return MeasurementNode(x, P_p, R_p, F, Q, H, rho, tau, observe_func)
 
 
-def observe_factory(traj):
-    def f():
-        return (y for y in traj.Y.T)
-
-    return f
+def make_simple_nodes(n=5):
+    nodes = []
+    traj2, xk, P, tau, rho, u, U, H, F, Q, N = common.init_all()
+    for i in range(n):
+        traj2.Y += np.random.normal(size=traj2.Y.shape) * 0.1
+        nodes.append(node_factory(xk, P, u, U, F, Q, H, rho, tau, observe_factory(traj2.Y.T.copy())))
+    return nodes
