@@ -8,7 +8,6 @@ Vector = np.ndarray
 
 class IWPrior:
     hp: MultiShape = None
-    p: Scalar = None
 
     def __init__(self, nu: Scalar, psi: Matrix):
         self.hp = np.array([
