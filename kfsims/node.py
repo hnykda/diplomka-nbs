@@ -137,19 +137,12 @@ def node_factory(x, P, u, U, F, Q, H, rho, tau, observe_func, iterations=10):
     return MeasurementNode(x, P_p, R_p, F, Q, H, rho, tau, observe_func, N=iterations)
 
 
-def diff_true(tr, dis):
-    return abs((tr.T[:, :2] - dis.T).mean(axis=0))
-
-
 def make_simple_nodes(n=5, iterations=10, traj=None):
     nodes = []
     for i in range(n):
-        # if moved above the loop, everything breaks
-        #traj = common.init_trajectory()
         traj2, xk, P, tau, rho, u, U, H, F, Q, N = common.init_all(traj)
         np.random.seed(i)
         traj2.Y = traj2.Y + np.random.normal(size=traj2.Y.shape) * 5
-        #print(traj2.Y.min(axis=1), traj2.Y.max(axis=1), traj2.Y.std(axis=1))
         nd = node_factory(xk, P, u, U, F, Q, H, rho, tau, observe_factory(traj2.Y.T.copy()), iterations)
         nodes.append(nd)
     return nodes
