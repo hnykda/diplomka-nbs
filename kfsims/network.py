@@ -3,8 +3,8 @@ import networkx as nx
 import numpy as np
 
 
-def create_network(n, k=5):
-    nodes = make_simple_nodes(n)
+def create_network(n, k=5, iterations=10):
+    nodes = make_simple_nodes(n, iterations)
     G_ = nx.random_regular_graph(k, len(nodes))
     G = nx.relabel_nodes(G_, {ix: nodes[ix] for ix in range(len(nodes))})
     return G

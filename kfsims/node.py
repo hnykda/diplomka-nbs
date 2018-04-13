@@ -120,7 +120,7 @@ class MeasurementNode:
 
     def post_rmse(self, true):
         x_log = np.array(self.logger['x']).squeeze().T
-        rmse = np.sqrt(((x_log[:2] - true[:2]) ** 2).mean())
+        rmse = np.sqrt(((x_log - true) ** 2).mean(axis=1))
         return rmse
 
 
@@ -130,17 +130,17 @@ def observe_factory(traj):
     return f
 
 
-def node_factory(x, P, u, U, F, Q, H, rho, tau, observe_func):
+def node_factory(x, P, u, U, F, Q, H, rho, tau, observe_func, iterations=10):
     P_p = IWPrior(P.shape[0] + tau + 1, tau * P)
     R_p = IWPrior(u, U)
-    return MeasurementNode(x, P_p, R_p, F, Q, H, rho, tau, observe_func)
+    return MeasurementNode(x, P_p, R_p, F, Q, H, rho, tau, observe_func, N=iterations)
 
 
-def make_simple_nodes(n=5):
+def make_simple_nodes(n=5, iterations=10):
     nodes = []
     for i in range(n):
         traj2, xk, P, tau, rho, u, U, H, F, Q, N = common.init_all()
         np.random.seed(i)
         traj2.Y = traj2.Y + np.random.normal(size=traj2.Y.shape) * 5
-        nodes.append(node_factory(xk, P, u, U, F, Q, H, rho, tau, observe_factory(traj2.Y.T.copy())))
+        nodes.append(node_factory(xk, P, u, U, F, Q, H, rho, tau, observe_factory(traj2.Y.T.copy()), iterations))
     return nodes
