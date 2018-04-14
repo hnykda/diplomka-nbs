@@ -118,9 +118,9 @@ class MeasurementNode:
     def log(self, key, val):
         self.logger[key].append(val)
 
-    def post_rmse(self, true):
+    def post_rmse(self, true, start_element=50):
         x_log = np.array(self.logger['x']).squeeze().T
-        rmse = np.sqrt(((x_log - true) ** 2).mean(axis=1))
+        rmse = np.sqrt(((x_log[:, start_element:] - true[:, start_element:]) ** 2).mean(axis=1))
         return rmse
 
 
