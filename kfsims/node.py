@@ -137,12 +137,14 @@ def node_factory(x, P, u, U, F, Q, H, rho, tau, observe_func, iterations=10):
     return MeasurementNode(x, P_p, R_p, F, Q, H, rho, tau, observe_func, N=iterations)
 
 
-def make_simple_nodes(n=5, iterations=10, traj=None):
+def make_simple_nodes(n=5, iterations=10, traj=None, noise_modifier=None):
+    if not noise_modifier:
+        noise_modifier = lambda _: 1
     nodes = []
     for i in range(n):
         traj2, xk, P, tau, rho, u, U, H, F, Q, N = common.init_all(traj)
         np.random.seed(i)
-        traj2.Y = traj2.Y + np.random.normal(size=traj2.Y.shape) * 5
+        traj2.Y = traj2.Y + (np.random.normal(size=traj2.Y.shape) * noise_modifier(traj2.Y.shape[1])) * 5
         nd = node_factory(xk, P, u, U, F, Q, H, rho, tau, observe_factory(traj2.Y.T.copy()), iterations)
         nodes.append(nd)
     return nodes
