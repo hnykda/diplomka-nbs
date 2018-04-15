@@ -6,7 +6,7 @@ import numpy as np
 def create_network(n, k=5, iterations=10, noise_modifier=None):
     nodes = make_simple_nodes(n, iterations, noise_modifier=noise_modifier)
     G_ = nx.random_regular_graph(k, len(nodes))
-    #G_ = nx.caveman_graph(int(n/k), k)
+    # G_ = nx.caveman_graph(int(n/k), k)
     G = nx.relabel_nodes(G_, {ix: nodes[ix] for ix in range(len(nodes))})
     return G
 

@@ -35,7 +35,7 @@ def init_trajectory(ndat=300):
     return traj
 
 
-def init_all(traj=None, N=5):
+def init_all(traj=None, N=10, add_cov=None):
     if not traj:
         traj = init_trajectory()
     xk = np.array([0, 0, 1, 1])
@@ -44,7 +44,8 @@ def init_all(traj=None, N=5):
     rho = .99
 
     u = 13
-    U = 2 * traj.R * (u - traj.R.shape[0] - 1)
+    cv = add_cov if add_cov else 0
+    U = (traj.R + cv) * (u - traj.R.shape[0] - 1)
 
     H = traj.H
     F = traj.A
