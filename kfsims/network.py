@@ -6,7 +6,7 @@ import numpy as np
 def create_network(n, k=5, iterations=10, noise_modifier=None):
     nodes = make_simple_nodes(n, iterations, noise_modifier=noise_modifier)
     G_ = nx.random_regular_graph(k, len(nodes))
-    #G_ = nx.caveman_graph(int(n/k), k)
+    # G_ = nx.caveman_graph(int(n/k), k)
     G = nx.relabel_nodes(G_, {ix: nodes[ix] for ix in range(len(nodes))})
     return G
 
@@ -24,8 +24,8 @@ def fuse_parameters(params_):
 
 
 def get_cluster_params(cluster):
-    Ps = _get_neighbors_att(cluster, 'P')# + [node.P_prior.hp]
-    Rs = _get_neighbors_att(cluster, 'R')# + [node.R_prior.hp]
+    Ps = _get_neighbors_att(cluster, 'P')
+    Rs = _get_neighbors_att(cluster, 'R')
     new_P = fuse_parameters(Ps)
     new_R = fuse_parameters(Rs)
     return new_P, new_R

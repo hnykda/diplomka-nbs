@@ -1,60 +1,38 @@
-from kfsims.node import make_simple_nodes
-from kfsims.common import init_trajectory
-import networkx as nx
 import numpy as np
+from scipy.stats import multivariate_normal as mvn
+import matplotlib.pylab as plt
+RMSE_START = 20
 
-def create_network(n, k=5):
-    nodes = make_simple_nodes(n)
-    G_ = nx.random_regular_graph(k, len(nodes))
-    G = nx.relabel_nodes(G_, {ix: nodes[ix] for ix in range(len(nodes))})
-    G.get_by_mid = lambda x: G[[node for node in nodes if node.label == x][0]]  #G.get_by_mid('86088')
-    G.local_kf_on_all_nodes = lambda: [next(node._kf_iterator) for node in G]
-    return G
+from kfsims.common import init_trajectory, init_all
 
-def _get_neighbors_att(G, node, prior_pref):
-    """
-    Examples:
-        _get_neighbors_att(G, node, 'P')
-        _get_neighbors_att(G, node, 'R')
-    """
-    res = []
-    for ngh in G.neighbors(node):
-        res.append(getattr(ngh, prior_pref + '_prior').hp)
-    return res
+def shifted_sinus(N, sin_halves=5, shift=1):
+    a = np.array(shift + np.sin([np.pi * (sin_halves*i/N) for i in range(N)]) * 5)
+    return np.array([a,a])
 
-def fuse_parameters(params_):
-    params = np.array(params_)
-    return np.mean(params, axis=0)
+def rising_sinus(N, sin_halves=5, shift=0):
+    np.random.seed(10)
+    a = shift + np.sin([np.pi * (sin_halves*i/N) for i in range(N)]) + np.random.rand(N)*2
+    return np.array([a,a])
 
-def node_neighbors_fusion_update(G, node):
-    Ps = _get_neighbors_att(G, node, 'P') + [node.P_prior.hp]
-    Rs = _get_neighbors_att(G, node, 'R') + [node.R_prior.hp]
-    new_P = fuse_parameters(Ps)
-    new_R = fuse_parameters(Rs)
-    return new_P, new_R
+#noise_modifier = shifted_sinus(300)
+noise_modifier = rising_sinus(300)
 
-def update_node_by_neighbors(G, node):
-    hyp_P, hyp_R = node_neighbors_fusion_update(G, node)
-    node.R_prior.hp = hyp_R
-    node.P_prior.hp = hyp_P
+#noise_modifier = shifted_sinus(300)
+#noise_modifier = rising_sinus(300)
 
-traj = init_trajectory()
+from kfsims import common
+from kfsims.node import node_factory, observe_factory
 
-# tohle je dle mého ono
-net = create_network(20)
-msrms = {node: (i for i in node.observe()) for node in net}
-for i in range(traj.X.shape[1]):
-    for node, ms in msrms.items():
-        m = next(ms)
-        node.single_kf(m)
+trj = init_trajectory()
+msrm = trj.Y + noise_modifier
+true_traj = trj.X.T
 
-    for node in net:
-#        print(node.P_prior.psi, node.R_prior.psi)
-         update_node_by_neighbors(net, node)
-#        print(node.P_prior.psi, node.R_prior.psi)
-#        print()
-
-rmses = []
-for node in net:
-    rmses.append(node.post_rmse(traj.X))
-print(np.mean(rmses))
+def daniels_variant(measurements, true):
+    iterations = 10
+    _, xk, P, tau, rho, u, U, H, F, Q, N = common.init_all()
+    nd = node_factory(xk, P, u, U, F, Q, H, rho, tau, observe_factory(measurements.T), iterations)
+    nd()
+    preds = np.array(nd.logger['x']).squeeze()
+    return preds, nd.post_rmse(true.T, start_element=RMSE_START)
+res_dv, rms_dv = daniels_variant(msrm, true_traj)
+print(rms_dv)

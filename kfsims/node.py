@@ -5,6 +5,7 @@ from kfsims.exp_family import update_IW
 from archive import exp_family
 from typing import Tuple, Callable
 from collections import defaultdict
+from filterpy.kalman import KalmanFilter
 
 Matrix = np.ndarray
 MultiShape = np.ndarray
@@ -102,7 +103,7 @@ class MeasurementNode:
 
     @property
     def _kf_iterator(self):
-        for measurement in self.observe():
+        for i, measurement in enumerate(self.observe()):
             x, P, hyp_P, hyp_R = self.single_kf(measurement)
             yield x, P, hyp_P, hyp_R
 
@@ -118,9 +119,9 @@ class MeasurementNode:
     def log(self, key, val):
         self.logger[key].append(val)
 
-    def post_rmse(self, true):
+    def post_rmse(self, true, start_element=0):
         x_log = np.array(self.logger['x']).squeeze().T
-        rmse = np.sqrt(((x_log - true) ** 2).mean(axis=1))
+        rmse = np.mean(np.sqrt((x_log[:, start_element:] - true[:, start_element:]) ** 2), 1)
         return rmse
 
 
@@ -139,12 +140,12 @@ def node_factory(x, P, u, U, F, Q, H, rho, tau, observe_func, iterations=10):
 
 def make_simple_nodes(n=5, iterations=10, traj=None, noise_modifier=None):
     if not noise_modifier:
-        noise_modifier = lambda _: 1
+        noise_modifier = lambda _: 10
     nodes = []
     for i in range(n):
         traj2, xk, P, tau, rho, u, U, H, F, Q, N = common.init_all(traj)
         np.random.seed(i)
-        traj2.Y = traj2.Y + (np.random.normal(size=traj2.Y.shape) * noise_modifier(traj2.Y.shape[1])) * 5
+        traj2.Y = traj2.Y + (np.random.normal(size=traj2.Y.shape) * noise_modifier(traj2.Y.shape))
         nd = node_factory(xk, P, u, U, F, Q, H, rho, tau, observe_factory(traj2.Y.T.copy()), iterations)
         nodes.append(nd)
     return nodes
