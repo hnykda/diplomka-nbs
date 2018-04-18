@@ -57,6 +57,8 @@ class MeasurementNode:
 
         self.P = self.P_prior.expect()
 
+        self.observe_gen = observe()
+
         self.label = label if label else str(id(self))[-5:]
 
     def predict_state(self) -> Tuple[Vector, Matrix]:
@@ -140,6 +142,9 @@ class MeasurementNode:
 
     def norm_r(self):
         return np.array([np.linalg.norm(x) for x in self.logger['R']])
+
+    def __next__(self):
+        return next(self.observe_gen)
 
 
 def observe_factory(traj):
