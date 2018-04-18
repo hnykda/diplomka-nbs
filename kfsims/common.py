@@ -28,7 +28,7 @@ def predict_PECM(F_l, P_l__l, Q_l):
     return F_l @ P_l__l @ F_l.T + Q_l
 
 
-def init_trajectory(ndat=300):
+def init_trajectory(ndat=250):
     traj = trajectory(ndat=ndat)
     traj.R = 5 * np.eye(2)
     traj._simulate()

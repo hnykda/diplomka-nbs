@@ -98,6 +98,7 @@ class MeasurementNode:
         self.R_prior.hp = hyp_R
         self.log('x', x)
         self.log('P', P)
+        self.log('R', self.R_prior.expect())
         self.log('y', measurement)
         return x, P, hyp_P, hyp_R
 
@@ -119,10 +120,23 @@ class MeasurementNode:
     def log(self, key, val):
         self.logger[key].append(val)
 
-    def post_rmse(self, true, start_element=0):
+    def _rmse_diff(self, true, start_element):
         x_log = np.array(self.logger['x']).squeeze().T
-        rmse = np.mean(np.sqrt((x_log[:, start_element:] - true[:, start_element:]) ** 2), 1)
-        return rmse
+        s = np.sqrt((x_log[:, start_element:] - true[:, start_element:]) ** 2)
+        return s
+
+    def post_rmse(self, true, start_element=0):
+        s = self._rmse_diff(true, start_element)
+        return np.mean(s, axis=1)
+
+    def post_rmse_std(self, true, start_element=0):
+        s = self._rmse_diff(true, start_element)
+        return np.std(s, axis=1)
+
+    def rmse_stats(self, true):
+        m = self.post_rmse(true)
+        s = self.post_rmse_std(true)
+        return m, s
 
 
 def observe_factory(traj):

@@ -31,7 +31,8 @@ class trajectory():
 
         x = self.m0
         for t in range(self.ndat):
-            q = mvn.rvs(cov=self.Q)
+            #shift = abs(np.cos(np.pi*t/self.ndat)) * np.eye(4)
+            q = mvn.rvs(cov=self.Q) # + shift)
             #            print('q:\n', q)
             x = self.A.dot(x) + q
             #            print('x: \n', x)
