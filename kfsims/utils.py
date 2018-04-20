@@ -40,7 +40,7 @@ def classic_kf(traj, measurements, true, cov):
 
     preds = np.array(rec)[:, :, 0]
     s = np.sqrt((preds[:] - true[:]) ** 2)
-    return preds, np.mean(s, axis=0), np.std(s, axis=0)
+    return preds, np.mean(s, axis=0).round(3), np.std(s, axis=0).round(3)
 
 
 def plot_variants_only(av, kfc, true, start_pos):

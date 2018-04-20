@@ -15,7 +15,7 @@ def make_node(measurements, cov, rho=0.9, tau=5, u=5):
     return nd
 
 
-def gen_noise(N, trj, seed, mod=15, halves=3):
+def gen_noise(N, trj, seed, mod=20, halves=3):
     np.random.seed(seed)
     s = noise.sin_noise(N, halves, shift=seed)
     n_sin = noise.static_noise(N, mod=mod) * s
@@ -23,10 +23,10 @@ def gen_noise(N, trj, seed, mod=15, halves=3):
     return msrms
 
 
-def create_nodes(n_nodes, trj, cov_init):
+def create_nodes(n_nodes, trj, cov_init, seed_mod=0):
     nodes = []
     for i in range(n_nodes):
-        msrms = gen_noise(trj.X.shape[-1], trj, i)
+        msrms = gen_noise(trj.X.shape[-1], trj, i + seed_mod)
         nd = make_node(msrms, cov_init)
         nodes.append(nd)
     return nodes
@@ -53,18 +53,29 @@ def get_cluster_params(cluster):
 
 
 def update_nodes_neighbors_cluster(G, in_queue):
+    """
+    TODO: Seems, that the following fives same good results
+    as when it's not commented out.
+    """
     node = in_queue.pop()
     cluster = (set(G.neighbors(node)) & in_queue) | {node}
     hyp_P, hyp_R = get_cluster_params(cluster)
     for n in cluster:
-        n.R_prior.hp = hyp_R
-        n.P_prior.hp = hyp_P
-        n.log('R_post', n.R_prior.expect())
+        if n.R_updated != True:
+            n.R_prior.hp = hyp_R
+            n.P_prior.hp = hyp_P
+            n.log('R_post', n.R_prior.expect())
+            n.log('P_post', n.P_prior.expect())
+            n.R_updated = True
     return in_queue# - cluster
 
 
 def update_hyperparams(self):
     in_queue = set(np.random.permutation(self))
+
+    for nod in in_queue:
+        nod.R_updated = False
+
     while in_queue:
         in_queue = update_nodes_neighbors_cluster(self, in_queue)
 
@@ -116,7 +127,7 @@ def create_network(nodes, k=4):
 
     return G
 
-def create_w_nodes(n_nodes, trj, cov_init):
-    nodes = create_nodes(n_nodes, trj, cov_init)
+def create_w_nodes(n_nodes, trj, cov_init, seed_mod=0):
+    nodes = create_nodes(n_nodes, trj, cov_init, seed_mod=seed_mod)
     G = create_network(nodes)
     return G

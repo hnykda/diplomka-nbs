@@ -129,11 +129,11 @@ class MeasurementNode:
 
     def post_rmse(self, true, start_element=0):
         s = self._rmse_diff(true, start_element)
-        return np.mean(s, axis=1)
+        return np.mean(s, axis=1).round(3)
 
     def post_rmse_std(self, true, start_element=0):
         s = self._rmse_diff(true, start_element)
-        return np.std(s, axis=1)
+        return np.std(s, axis=1).round(3)
 
     def rmse_stats(self, true):
         m = self.post_rmse(true)
@@ -142,6 +142,9 @@ class MeasurementNode:
 
     def norm_r(self):
         return np.array([np.linalg.norm(x) for x in self.logger['R']])
+
+    def norm_p(self):
+        return np.array([np.linalg.norm(x) for x in self.logger['P']])
 
     def __next__(self):
         return next(self.observe_gen)
