@@ -106,6 +106,36 @@ def kf_no_diffusion(net, trj):
     return net.collect_rmse(trj)
 
 
+def kf_no_diffusion2(self, trj):
+    # init
+    xs = []
+    Ps = []
+
+    for node in self.nodes:
+        xs.append(node.last_state)
+        Ps.append(node.P_prior.expect())
+
+    invPs = [np.linalg.inv(P_s) for P_s in Ps]
+    P = np.linalg.inv(np.sum(invPs, axis=0))
+
+    consensus_x = []
+    for i in range(trj.shape[1]):
+        self._single_kf()
+
+        xs = []
+        Ps = []
+        for node in self.nodes:
+            xs.append(node.last_state)
+            Ps.append(node.P_prior.expect())
+
+        invPs = [np.linalg.inv(P_s) for P_s in Ps]
+        x = P @ np.sum([P_s @ x_s for P_s, x_s in zip(invPs, xs)], axis=0)
+        P = np.linalg.inv(np.sum(invPs, axis=0))
+        consensus_x.append(x)
+
+    return np.mean((np.array(consensus_x) - trj.X.T) ** 2, axis=0)
+
+
 def kf_w_diffusion(net, trj):
     for i in range(trj.shape[1]):
         net.diffused_single_kf()
@@ -123,6 +153,7 @@ def create_network(nodes, k=4):
     G.collect_rmse = types.MethodType(collect_rmse, G)
 
     G.kf_no_diffusion = types.MethodType(kf_no_diffusion, G)
+    G.kf_no_diffusion2 = types.MethodType(kf_no_diffusion2, G)
     G.kf_w_diffusion = types.MethodType(kf_w_diffusion, G)
 
     return G
