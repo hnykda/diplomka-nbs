@@ -2,7 +2,7 @@ from kfsims.iw_prior import IWPrior
 import numpy as np
 from kfsims import common
 from kfsims.exp_family import update_IW
-from archive import exp_family
+from kfsims import exp_family
 from typing import Tuple, Callable
 from collections import defaultdict
 from filterpy.kalman import KalmanFilter
